@@ -1,47 +1,161 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Simple Bank</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastAPI Bank</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 350px;
+            text-align: center;
+        }
+        h1 { color: #333; margin-bottom: 1.5rem; }
+        
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        
+        .button-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .btn-create { background-color: #3b82f6; color: white; grid-column: span 2; }
+        .btn-dep { background-color: #10b981; color: white; }
+        .btn-wit { background-color: #ef4444; color: white; }
+        .btn-bal { background-color: #6b7280; color: white; grid-column: span 2; }
+
+        button:hover { opacity: 0.9; }
+
+        #result-area {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            display: none; /* Hidden by default */
+        }
+        .success { background-color: #d1fae5; color: #065f46; border: 1px solid #10b981; }
+        .error { background-color: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
+    </style>
 </head>
 <body>
-  <h1>Simple Banking System</h1>
 
-  <input type="text" id="name" placeholder="Enter Name"><br><br>
-  <input type="number" id="amount" placeholder="Enter Amount"><br><br>
+    <div class="card">
+        <h1>🏦 Simple Bank</h1>
+        
+        <input type="text" id="name" placeholder="Account Name">
+        <input type="number" id="amount" placeholder="Amount (if needed)">
 
-  <button onclick="create()">Create Account</button>
-  <button onclick="deposit()">Deposit</button>
-  <button onclick="withdraw()">Withdraw</button>
-  <button onclick="balance()">Check Balance</button>
+        <div class="button-grid">
+            <button class="btn-create" onclick="create()">Create Account</button>
+            <button class="btn-dep" onclick="deposit()">Deposit (+)</button>
+            <button class="btn-wit" onclick="withdraw()">Withdraw (-)</button>
+            <button class="btn-bal" onclick="balance()">Check Balance</button>
+        </div>
 
-  <h3 id="result"></h3>
+        <div id="result-area"></div>
+    </div>
 
 <script>
-const baseURL = '/api';
+    const baseURL = '/api';
 
-async function create(){
-  let name = document.getElementById("name").value;
-  let res = await fetch(baseURL+"/create",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name, amount:0})});
-  show(await res.json());
-}
-async function deposit(){
-  let name = document.getElementById("name").value;
-  let amount = parseFloat(document.getElementById("amount").value);
-  let res = await fetch(baseURL+"/deposit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name, amount})});
-  show(await res.json());
-}
-async function withdraw(){
-  let name = document.getElementById("name").value;
-  let amount = parseFloat(document.getElementById("amount").value);
-  let res = await fetch(baseURL+"/withdraw",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name, amount})});
-  show(await res.json());
-}
-async function balance(){
-  let name = document.getElementById("name").value;
-  let res = await fetch(baseURL+"/balance/"+name);
-  show(await res.json());
-}
-function show(data){ document.getElementById("result").innerText = JSON.stringify(data); }
+    // Helper to update the UI with messages
+    function displayMessage(data) {
+        const resultDiv = document.getElementById("result-area");
+        resultDiv.style.display = "block";
+        
+        // Clear previous classes
+        resultDiv.className = "";
+
+        if (data.success === false) {
+            resultDiv.classList.add("error");
+            resultDiv.innerText = "❌ " + data.message;
+        } else {
+            resultDiv.classList.add("success");
+            let msg = "✅ " + data.message;
+            if (data.balance !== undefined) {
+                msg += "\n💰 Balance: $" + data.balance;
+            }
+            resultDiv.innerText = msg;
+        }
+    }
+
+    async function create(){
+        let name = document.getElementById("name").value;
+        if(!name) return alert("Please enter a name");
+        
+        let res = await fetch(baseURL+"/create", {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({name, amount:0})
+        });
+        displayMessage(await res.json());
+    }
+
+    async function deposit(){
+        let name = document.getElementById("name").value;
+        let amount = parseFloat(document.getElementById("amount").value);
+        if(!name || !amount) return alert("Enter name and amount");
+
+        let res = await fetch(baseURL+"/deposit", {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({name, amount})
+        });
+        displayMessage(await res.json());
+    }
+
+    async function withdraw(){
+        let name = document.getElementById("name").value;
+        let amount = parseFloat(document.getElementById("amount").value);
+        if(!name || !amount) return alert("Enter name and amount");
+
+        let res = await fetch(baseURL+"/withdraw", {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({name, amount})
+        });
+        displayMessage(await res.json());
+    }
+
+    async function balance(){
+        let name = document.getElementById("name").value;
+        if(!name) return alert("Please enter a name");
+
+        let res = await fetch(baseURL+"/balance/"+name);
+        displayMessage(await res.json());
+    }
 </script>
+
 </body>
 </html>
