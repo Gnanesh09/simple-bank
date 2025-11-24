@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Simple Bank</title>
+</head>
+<body>
+  <h1>Simple Banking System</h1>
+
+  <input type="text" id="name" placeholder="Enter Name"><br><br>
+  <input type="number" id="amount" placeholder="Enter Amount"><br><br>
+
+  <button onclick="create()">Create Account</button>
+  <button onclick="deposit()">Deposit</button>
+  <button onclick="withdraw()">Withdraw</button>
+  <button onclick="balance()">Check Balance</button>
+
+  <h3 id="result"></h3>
+
+<script>
+const baseURL = '/api';
+
+async function create(){
+  let name = document.getElementById("name").value;
+  let res = await fetch(baseURL+"/create",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name, amount:0})});
+  show(await res.json());
+}
+async function deposit(){
+  let name = document.getElementById("name").value;
+  let amount = parseFloat(document.getElementById("amount").value);
+  let res = await fetch(baseURL+"/deposit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name, amount})});
+  show(await res.json());
+}
+async function withdraw(){
+  let name = document.getElementById("name").value;
+  let amount = parseFloat(document.getElementById("amount").value);
+  let res = await fetch(baseURL+"/withdraw",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name, amount})});
+  show(await res.json());
+}
+async function balance(){
+  let name = document.getElementById("name").value;
+  let res = await fetch(baseURL+"/balance/"+name);
+  show(await res.json());
+}
+function show(data){ document.getElementById("result").innerText = JSON.stringify(data); }
+</script>
+</body>
+</html>
